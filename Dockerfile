@@ -17,4 +17,4 @@ RUN zypper -n --gpg-auto-import-keys ref &&\
 USER app
 ADD . /home/app
 WORKDIR /home/app
-ENTRYPOINT ["/opt/pypy/bin/pypy3", "/home/app/main.py"]
+ENTRYPOINT ["/opt/pypy/bin/pypy3", "/home/app/src/main.py"]
