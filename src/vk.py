@@ -6,7 +6,7 @@ from typing import Callable, Union
 from vkbottle import Bot, Keyboard, KeyboardButtonColor, Text
 from vkbottle.bot import Message
 
-from src.abstract import AbstractBotAPI
+from abstract import AbstractBotAPI
 
 
 class VkBotAPI(AbstractBotAPI):

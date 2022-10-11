@@ -3,14 +3,15 @@ import re
 from pathlib import Path
 import os
 import shelve
+import atexit
 from datetime import date
 from typing import Iterable, Any
 
 from cache import AsyncTTL
 from vkbottle.http import aiohttp
 
-from src.abstract import AbstractBotAPI
-from src.misc import async_partial
+from abstract import AbstractBotAPI
+from misc import async_partial
 
 
 class Bot:
@@ -27,9 +28,7 @@ class Bot:
         asyncio.get_event_loop().create_task(self._get_class_intervals())
         for api in apis:
             api.add_text_handler(async_partial(self._handler, api))
-
-    def __del__(self):
-        self._db.close()
+        atexit.register(self._db.close)
 
     async def _get_class_intervals(self):
         self._class_intervals = await self._schedule_api_rq('class-intervals')

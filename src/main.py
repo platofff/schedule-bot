@@ -1,9 +1,9 @@
 import asyncio
 import logging
 
-from src.bot import Bot
-from src.telegram import TelegramBotAPI
-from src.vk import VkBotAPI
+from bot import Bot
+from telegram import TelegramBotAPI
+from vk import VkBotAPI
 
 
 async def main():

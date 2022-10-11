@@ -6,7 +6,7 @@ from typing import Callable, Union
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
-from src.abstract import AbstractBotAPI
+from abstract import AbstractBotAPI
 
 
 class TelegramBotAPI(AbstractBotAPI):
