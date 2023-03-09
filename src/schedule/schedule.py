@@ -13,7 +13,7 @@ from src.schedule.class_ import Class
 
 
 @singledispatch
-async def get_user(_, __) -> dict:
+async def get_user(_, __) -> SimpleNamespace:
     raise NotImplementedError('Not implemented')
 
 
@@ -72,5 +72,5 @@ class Schedule:
         return schedule
 
     @staticmethod
-    async def get(user, class_type: Type[Class]) -> dict:
+    async def get(user, class_type: Type[Class]) -> SimpleNamespace:
         return await get_user(user, class_type)
