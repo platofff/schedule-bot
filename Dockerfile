@@ -3,8 +3,8 @@ ADD ./requirements.txt /home/app/requirements.txt
 RUN zypper -n --gpg-auto-import-keys ref &&\
  ln -s /usr/share/zoneinfo/Europe/Moscow /etc/localtime &&\
  zypper -n in --no-recommends curl timezone bzip2 tar &&\
- curl https://downloads.python.org/pypy/pypy3.8-v7.3.9-linux64.tar.bz2 | tar xjf - -C /tmp &&\
- mv /tmp/pypy3.8-v7.3.9-linux64 /opt/pypy &&\
+ curl https://downloads.python.org/pypy/pypy3.9-v7.3.11-linux64.tar.bz2 | tar xjf - -C /tmp &&\
+ mv /tmp/pypy3.9-v7.3.11-linux64 /opt/pypy &&\
  /opt/pypy/bin/pypy3 -m ensurepip &&\
  /opt/pypy/bin/pypy3 -m pip install -U pip wheel &&\
  groupadd -g 2000 app &&\

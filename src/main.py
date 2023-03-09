@@ -1,15 +1,21 @@
 import asyncio
-import logging
+from os import getenv
 
-from bot import Bot
-from telegram import TelegramBotAPI
-from vk import VkBotAPI
+from src.bot.bot import Bot
+from src.bot_api.telegram import TelegramBotAPI
+from src.bot_api.vk import VkBotAPI
 
 
 async def main():
-    apis = [VkBotAPI(), TelegramBotAPI()]
+    apis = []
+    vk_token = getenv('VK_BOT_TOKEN')
+    tg_token = getenv('TG_BOT_TOKEN')
+    if vk_token:
+        apis.append(VkBotAPI(vk_token))
+    if tg_token:
+        apis.append(TelegramBotAPI(tg_token))
     bot = Bot(apis)
-    await asyncio.sleep(float('+inf'))
+    await bot.run()
 
 loop = asyncio.new_event_loop()
 try:
