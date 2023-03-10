@@ -1,5 +1,5 @@
-import asyncio
 from os import getenv
+import asyncio
 
 from src.bot.bot import Bot
 from src.bot_api.telegram import TelegramBotAPI

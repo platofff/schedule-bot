@@ -11,6 +11,7 @@ services:
       LC_ALL: en_US.UTF-8
       VK_BOT_TOKEN: ${VK_BOT_TOKEN}
       TG_BOT_TOKEN: ${TG_BOT_TOKEN}
+      DB_PATH: /home/app/db
 
 volumes:
   db:
