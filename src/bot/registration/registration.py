@@ -15,7 +15,7 @@ class Registration:
     async def register(self, msg: Message):
         if msg.text == 'Студент':
             db[msg.sid] = Student()
-            await msg.api.send_text(msg.ctx, 'Отлично. Теперь отправь мне название своего факультета', 'clear')
+            await msg.api.send_text(msg.ctx, 'Отлично. Теперь отправьте мне название своего факультета', 'clear')
         elif msg.text == 'Преподаватель':
             db[msg.sid] = Lecturer()
             await msg.api.send_text(msg.ctx,

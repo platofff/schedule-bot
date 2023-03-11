@@ -10,5 +10,6 @@ class Command(AbstractCommand):
     @classmethod
     async def run(cls, msg: Message, _):
         del db[msg.sid]
-        await msg.api.send_text(msg.ctx, 'Настройки сброшены. Для настройки отправь мне "Преподаватель" или "Студент"',
+        await msg.api.send_text(msg.ctx, 'Настройки сброшены. Для настройки отправьте мне '
+                                         '"Преподаватель" или "Студент"',
                                 'role')

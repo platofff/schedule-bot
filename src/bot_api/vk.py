@@ -3,10 +3,10 @@ import logging
 from typing import Callable, Union, List, Coroutine
 
 from vkbottle import Bot, Keyboard, KeyboardButtonColor, Text
-from vkbottle.bot import Message as VkMessage
-
+from vkbottle.bot import rules, Message as VkMessage
 from src.bot.entities import Message
 from src.bot_api.abstract import AbstractBotAPI
+from src.db import db
 from src.schedule.class_ import Class
 
 
@@ -18,15 +18,23 @@ class VkBotAPI(AbstractBotAPI):
     def __init__(self, token: str):
         logging.getLogger('vkbottle').setLevel(logging.INFO)
         self._bot = Bot(token=token)
+        self._bot.labeler.message_view.replace_mention = True
+
+        @self._bot.on.chat_message(rules.ChatActionRule('chat_invite_user'))
+        async def handler2(message: VkMessage):
+            my_name = await self._bot.api.groups.get_by_id()
+            if self._user_id(message) not in db.keys():
+                m = 'Чтобы продолжить, отправьте мне "Студент" или "Преподаватель"\n'
+            else:
+                m = ''
+            await message.answer('Вас приветствует чат-бот "Расписание НПИ" 😉\n'
+                                 f'{m}'
+                                 f'Для обращения к боту используйте @{my_name[0].screen_name}')
 
         @self._bot.on.message()
-        async def handle(message: VkMessage):
-            text = message.text.split()
-            if text[0].startswith('[') and text[0].endswith(']'):
-                text.pop(0)
-            text = ' '.join(text)
+        async def handler(message: VkMessage):
             for h in self._text_handlers:
-                asyncio.create_task(h(Message(self, message, text, self._user_id(message))))
+                asyncio.create_task(h(Message(self, message, message.text, self._user_id(message))))
 
         self._keyboard.add(Text('Пара'), color=KeyboardButtonColor.POSITIVE)
         self._keyboard.add(Text('Пары сегодня'), color=KeyboardButtonColor.PRIMARY)
