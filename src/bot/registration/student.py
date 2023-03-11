@@ -18,7 +18,7 @@ class StudentRegistration:
         tmp = db[msg.sid]
         tmp.faculty = faculty_id
         db[msg.sid] = tmp
-        await msg.api.send_text(msg.ctx, 'Принято. На каком курсе вы обучаетесь (1-6)?')
+        await msg.api.send_text(msg.ctx, 'Принято. На каком курсе вы обучаетесь (1-6)?', 'reset_btn')
 
     async def fill_year(self, msg: Message):
         tmp = db[msg.sid]
@@ -27,7 +27,7 @@ class StudentRegistration:
         except (ValueError, AssertionError):
             return await msg.api.send_text(msg.ctx, 'Номер курса должен быть от 1 до 6!')
         db[msg.sid] = tmp
-        await msg.api.send_text(msg.ctx, 'OK. Теперь напишите название своей группы (например "РПИа")')
+        await msg.api.send_text(msg.ctx, 'OK. Теперь напишите название своей группы (например "РПИа")', 'reset_btn')
 
     async def fill_group(self, msg: Message):
         tmp = db[msg.sid]

@@ -14,4 +14,4 @@ class LecturerRegistration:
                                     'Бот настроен. Теперь вам доступны команды, указанные на кнопках клавиатуры.',
                                     'set')
         else:
-            await msg.api.send_text(msg.ctx, 'Преподаватель не найден!')
+            await msg.api.send_text(msg.ctx, 'Преподаватель не найден!', 'reset_btn')

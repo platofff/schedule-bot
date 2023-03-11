@@ -25,6 +25,8 @@ class Bot:
     async def _handler(self, msg: Message) -> None:
         if msg.sid not in db:
             return await self._registration.register(msg)
+        if msg.text == 'Сброс':
+            return await commands.reset.Command.run(msg, None)
         user = db[msg.sid]
         if type(user) is Student:
             if user.faculty is None:

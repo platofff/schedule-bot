@@ -12,8 +12,20 @@ from src.schedule.class_ import Class
 
 class TelegramBotAPI(AbstractBotAPI):
     _text_handlers: List[Callable[[Message], Coroutine]] = []
-    _keyboard = ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
-    _role_keyboard = ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
+    _keyboards = {
+        'set': ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
+        .row(KeyboardButton('Пара'), KeyboardButton('Пары сегодня'))
+        .row(KeyboardButton('Пары завтра'), KeyboardButton('Сброс')),
+
+        'role': ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
+        .row(KeyboardButton('Преподаватель'), KeyboardButton('Студент')),
+
+        'reset_btn': ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
+        .row(KeyboardButton('Сброс')),
+
+        'clear': ReplyKeyboardRemove(),
+        None: None
+    }
 
     def __init__(self, token: str):
         logging.getLogger('aiogram').setLevel(logging.INFO)
@@ -22,12 +34,9 @@ class TelegramBotAPI(AbstractBotAPI):
 
         @self._dp.message_handler()
         async def handle(message: TgMessage):
+            text = message.text if message.text != '/start' else 'Сброс'
             for h in self._text_handlers:
-                asyncio.create_task(h(Message(self, message, message.text, self._user_id(message))))
-
-        self._keyboard_markup = self._keyboard.row(KeyboardButton('Пара'), KeyboardButton('Пары сегодня'))\
-                                              .row(KeyboardButton('Пары завтра'), KeyboardButton('Сброс'))
-        self._role_keyboard_markup = self._role_keyboard.row(KeyboardButton('Преподаватель'), KeyboardButton('Студент'))
+                asyncio.create_task(h(Message(self, message, text, self._user_id(message))))
 
         self.task = asyncio.get_event_loop().create_task(self._dp.start_polling())
 
@@ -35,15 +44,7 @@ class TelegramBotAPI(AbstractBotAPI):
         self._text_handlers.append(fn)
 
     async def send_text(self, ctx: TgMessage, text: str, keyboard: Union[str, None] = None):
-        if keyboard is None:
-            reply_markup = None
-        elif keyboard == 'set':
-            reply_markup = self._keyboard_markup
-        elif keyboard == 'role':
-            reply_markup = self._role_keyboard_markup
-        else:
-            reply_markup = ReplyKeyboardRemove()
-        await ctx.answer(text, parse_mode='HTML', reply_markup=reply_markup)
+        await ctx.answer(text, parse_mode='HTML', reply_markup=self._keyboards[keyboard])
 
     class ClassType(Class):
         def _bold_text(self, text: str) -> str:
