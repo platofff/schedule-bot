@@ -1,10 +1,9 @@
-from types import SimpleNamespace
-
 from src.bot.commands._abstract import AbstractCommand
 from src.misc.class_status import ClassStatus
 from src.bot.entities import Message
 from src.misc.weekdays import weekdays
 from src.schedule.class_ import Class
+from src.schedule.schedule import Schedule
 
 triggers = {'пары сегодня'}
 
@@ -17,9 +16,10 @@ class Command(AbstractCommand):
         return now
 
     @classmethod
-    async def run(cls, msg: Message, s: SimpleNamespace):
+    async def run(cls, msg: Message, s: Schedule):
         res = []
         target = cls._get_class(s.now)
+        s.closest = s.get_closest(target)
         if any(c.week == target.week and c.day == target.day for c in s.classes):
             target = s.now
             current = True

@@ -37,7 +37,7 @@ class Bot:
             if user.name is None:
                 return await self._registration.lecturer.fill_name(msg)
 
-        schedule = await Schedule.get(user, msg.api.ClassType)
+        schedule = await Schedule.create(user, msg.api.ClassType)
 
         ltext = msg.text.lower()
         for cname in commands.__all__:

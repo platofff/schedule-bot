@@ -11,6 +11,7 @@ class Command(BaseCommand):
     def _get_class(now: Class) -> Class:
         if now.day == 6:
             now.day = 0
+            now.week = 1 if now.week == 2 else 2
         else:
             now.day += 1
         now.class_ = 0

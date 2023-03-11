@@ -1,15 +1,15 @@
-from types import SimpleNamespace
-
 from src.bot.commands._abstract import AbstractCommand
 from src.misc.class_status import ClassStatus
 from src.bot.entities import Message
+from src.schedule.schedule import Schedule
 
 triggers = {'пара'}
 
 
 class Command(AbstractCommand):
     @classmethod
-    async def run(cls, msg: Message, s: SimpleNamespace):
+    async def run(cls, msg: Message, s: Schedule):
+        s.closest = s.get_closest(s.now)
         if s.now.day != s.closest.day or s.now.week != s.closest.week:
             return await msg.api.send_text(msg.ctx, 'Пары закончились. Пора отдыхать 😼')
         res = []
