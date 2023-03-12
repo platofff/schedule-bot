@@ -18,6 +18,8 @@ class Schedule:
         res['week'] = 1 if floor((d - self.mfws) / 604_800_000) % 2 == 0 else 2
         dt = datetime.now()
         res['day'] = js_weekday(dt)
+        if res['day'] == 0:
+            res['week'] = 1 if res['week'] == 2 else 1
         for i, _ci in self.ci.items():
             h, m = tuple(map(int, _ci['end'].split(':')))
             t = time(h, m)
