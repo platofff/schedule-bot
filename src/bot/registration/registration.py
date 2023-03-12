@@ -22,4 +22,4 @@ class Registration:
                                     'Отлично. Теперь напишите мне свою фамилию и инициалы в формате "Иванов И И".',
                                     'reset_btn')
         else:
-            await msg.api.send_text(msg.ctx, 'Введите "Преподаватель" или "Студент"!', 'role')
+            await msg.api.send_text(msg.ctx, 'Введите "Преподаватель" или "Студент"', 'role')

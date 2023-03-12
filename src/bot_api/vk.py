@@ -2,39 +2,31 @@ import asyncio
 import logging
 from typing import Callable, Union, List, Coroutine
 
-from vkbottle import Bot, Keyboard, KeyboardButtonColor, Text
+from vkbottle import Bot, Keyboard as VkKeyboard, KeyboardButtonColor, Text
 from vkbottle.bot import rules, Message as VkMessage
 from src.bot.entities import Message
-from src.bot_api.abstract import AbstractBotAPI
+from src.bot_api.abstract import AbstractBotAPI, CommonMessages, Keyboard
 from src.db import db
 from src.schedule.class_ import Class
 
 
 class VkBotAPI(AbstractBotAPI):
     _text_handlers: List[Callable[[Message], Coroutine]] = []
-    _keyboards = {
-        'set': Keyboard(one_time=False, inline=False)
-        .add(Text('Пара'), color=KeyboardButtonColor.POSITIVE)
-        .add(Text('Пары сегодня'), color=KeyboardButtonColor.PRIMARY)
-        .row()
-        .add(Text('Пары завтра'), color=KeyboardButtonColor.SECONDARY)
-        .add(Text('Сброс'), color=KeyboardButtonColor.NEGATIVE).get_json(),
 
-        'role': Keyboard(one_time=False, inline=False)
-        .add(Text('Преподаватель'), color=KeyboardButtonColor.PRIMARY)
-        .add(Text('Студент'), color=KeyboardButtonColor.POSITIVE).get_json(),
-
-        'reset_btn': Keyboard(one_time=False, inline=False)
-        .add(Text('Сброс'), color=KeyboardButtonColor.NEGATIVE).get_json(),
-
-        'clear': '{"buttons":[],"one_time":true}',
-
-        None: None
-    }
-
-    _role_keyboard = Keyboard(one_time=False, inline=False)
+    @staticmethod
+    def _keyboard_adapter(k: Keyboard) -> str:
+        res = VkKeyboard(one_time=False, inline=False)
+        last_row = len(k) - 1
+        for i, row in enumerate(k):
+            for btn in row:
+                res.add(Text(btn.text), color=KeyboardButtonColor[btn.color])
+            if i != last_row:
+                res.row()
+        return res.get_json()
 
     def __init__(self, token: str):
+        AbstractBotAPI.__init__(self)
+        self._keyboards[None] = None
         logging.getLogger('vkbottle').setLevel(logging.INFO)
         self._bot = Bot(token=token)
         self._bot.labeler.message_view.replace_mention = True
@@ -43,10 +35,10 @@ class VkBotAPI(AbstractBotAPI):
         async def handler2(message: VkMessage):
             my_name = await self._bot.api.groups.get_by_id()
             if self._user_id(message) not in db.keys():
-                m = 'Чтобы продолжить, отправьте мне "Студент" или "Преподаватель"\n'
+                m = CommonMessages.START
             else:
                 m = ''
-            await message.answer('Вас приветствует чат-бот "Расписание НПИ" 😉\n'
+            await message.answer(f'{CommonMessages.HELLO}\n'
                                  f'{m}'
                                  f'Для обращения к боту используйте @{my_name[0].screen_name}')
 

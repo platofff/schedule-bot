@@ -3,38 +3,39 @@ import logging
 from typing import Callable, Union, List, Coroutine
 
 from aiogram import Bot, Dispatcher
-from aiogram.types import Message as TgMessage, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from aiogram.types import Message as TgMessage, ReplyKeyboardMarkup, KeyboardButton
 
 from src.bot.entities import Message
-from src.bot_api.abstract import AbstractBotAPI
+from src.bot_api.abstract import AbstractBotAPI, CommonMessages, Keyboard
+from src.db import db
 from src.schedule.class_ import Class
 
 
 class TelegramBotAPI(AbstractBotAPI):
     _text_handlers: List[Callable[[Message], Coroutine]] = []
-    _keyboards = {
-        'set': ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
-        .row(KeyboardButton('Пара'), KeyboardButton('Пары сегодня'))
-        .row(KeyboardButton('Пары завтра'), KeyboardButton('Сброс')),
 
-        'role': ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
-        .row(KeyboardButton('Преподаватель'), KeyboardButton('Студент')),
-
-        'reset_btn': ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
-        .row(KeyboardButton('Сброс')),
-
-        'clear': ReplyKeyboardRemove(),
-        None: None
-    }
+    @staticmethod
+    def _keyboard_adapter(k: Keyboard) -> ReplyKeyboardMarkup:
+        res = ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True)
+        for row in k:
+            res.row(*map(lambda x: KeyboardButton(x.text), row))
+        return res
 
     def __init__(self, token: str):
+        AbstractBotAPI.__init__(self)
         logging.getLogger('aiogram').setLevel(logging.INFO)
+        self._keyboards[None] = None
         self._bot = Bot(token)
         self._dp = Dispatcher(self._bot)
 
         @self._dp.message_handler()
         async def handle(message: TgMessage):
-            text = message.text if message.text != '/start' else 'Сброс'
+            if message.text == '/start':
+                if self._user_id(message) not in db.keys():
+                    await message.answer(CommonMessages.HELLO)
+                text = 'Сброс'
+            else:
+                text = message.text
             for h in self._text_handlers:
                 asyncio.create_task(h(Message(self, message, text, self._user_id(message))))
 
