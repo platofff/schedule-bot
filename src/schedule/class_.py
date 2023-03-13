@@ -37,7 +37,7 @@ class Class:
             self.discipline = c['discipline']
             self.type = c['type']
             self.auditorium = c['auditorium']
-            self.dates = [datetime.strptime(x, '%Y-%m-%d') for x in c['dates']]
+            self.dates = set(c['dates'])
         except KeyError:
             pass
 

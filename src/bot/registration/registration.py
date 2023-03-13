@@ -1,7 +1,7 @@
-from .lecturer import LecturerRegistration
-from .student import StudentRegistration
 from src.bot.entities import Message, Student, Lecturer
 from src.db import db
+from .lecturer import LecturerRegistration
+from .student import StudentRegistration
 
 
 class Registration:

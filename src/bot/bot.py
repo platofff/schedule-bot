@@ -3,10 +3,10 @@ from typing import Iterable, List
 
 from src.bot import commands
 from src.bot.entities import Message, Student
-from src.bot_api.abstract import AbstractBotAPI
 from src.bot.registration import Registration
-from src.schedule.schedule import Schedule
+from src.bot_api.abstract import AbstractBotAPI
 from src.db import db
+from src.schedule.schedule import Schedule
 
 
 class Bot:

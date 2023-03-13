@@ -4,6 +4,7 @@ from typing import Callable, Union, List, Coroutine
 
 from vkbottle import Bot, Keyboard as VkKeyboard, KeyboardButtonColor, Text
 from vkbottle.bot import rules, Message as VkMessage
+
 from src.bot.entities import Message
 from src.bot_api.abstract import AbstractBotAPI, CommonMessages, Keyboard
 from src.db import db
@@ -35,7 +36,7 @@ class VkBotAPI(AbstractBotAPI):
         async def handler2(message: VkMessage):
             my_name = await self._bot.api.groups.get_by_id()
             if self._user_id(message) not in db.keys():
-                m = CommonMessages.START
+                m = CommonMessages.START + '\n'
             else:
                 m = ''
             await message.answer(f'{CommonMessages.HELLO}\n'

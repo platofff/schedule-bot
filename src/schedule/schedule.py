@@ -1,8 +1,8 @@
 import re
+from bisect import bisect_left
 from datetime import datetime, time
 from functools import singledispatchmethod
 from math import floor
-from bisect import bisect_left
 from typing import Type, Union, List
 
 from src.bot.entities import Student, Lecturer
@@ -42,8 +42,7 @@ class Schedule:
             x['discipline'] = re.sub(' \(.*.\)$', '', x['discipline'])
         self.ci = await request('class-intervals')
         self.classes = [self.class_type(x, self.ci) for x in self.classes]
-        dt = datetime.now()
-        self.classes = list(filter(lambda x: x.discipline != '-' and x.dates[-1] >= dt, self.classes))
+        self.classes = list(filter(lambda x: x.discipline != '-', self.classes))
         self.now = await self.get_now()
 
     @singledispatchmethod

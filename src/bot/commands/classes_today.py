@@ -1,6 +1,8 @@
+from datetime import datetime
+
 from src.bot.commands._abstract import AbstractCommand
-from src.misc.class_status import ClassStatus
 from src.bot.entities import Message
+from src.misc.class_status import ClassStatus
 from src.misc.weekdays import weekdays
 from src.schedule.class_ import Class
 from src.schedule.schedule import Schedule

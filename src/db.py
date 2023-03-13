@@ -1,6 +1,6 @@
 import atexit
-import shelve
 import os
+import shelve
 from pathlib import Path
 
 dirname = os.getenv('DB_PATH')

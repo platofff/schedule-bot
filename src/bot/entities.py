@@ -1,6 +1,6 @@
+from abc import ABC
 from dataclasses import dataclass
 from typing import Any, Union
-from abc import ABC
 
 from src.bot_api.abstract import AbstractBotAPI
 
