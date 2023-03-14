@@ -1,9 +1,10 @@
 from abc import abstractmethod
-from datetime import datetime
+import datetime
 
 
 class Class:
     lecturer = ''
+    date: datetime.date
     _interval: dict
     _ci: dict
     _class: int
@@ -29,6 +30,7 @@ class Class:
         self.day = c['day']
         self._ci = ci
         self.class_ = int(c['class'])
+        self.date = c['date']
         try:
             self.lecturer = c['lecturer']
         except KeyError:
@@ -37,11 +39,14 @@ class Class:
             self.discipline = c['discipline']
             self.type = c['type']
             self.auditorium = c['auditorium']
-            self.dates = set(c['dates'])
         except KeyError:
             pass
 
     def __lt__(self, other):
+        if self.date < other.date:
+            return True
+        if self.date > other.date:
+            return False
         return int(f'{self.week}{self.day}{self.class_}') < int(f'{other.week}{other.day}{other.class_}')
 
     @abstractmethod

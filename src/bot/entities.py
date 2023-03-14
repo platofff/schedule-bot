@@ -33,7 +33,13 @@ class Student(User):
 
     group: Union[None, str] = None
 
+    def __hash__(self):
+        return hash((self.faculty, self._year, self.group))
+
 
 @dataclass
 class Lecturer(User):
     name: Union[None, str] = None
+
+    def __hash__(self):
+        return hash(self.name)

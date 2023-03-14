@@ -22,7 +22,7 @@ class Command(AbstractCommand):
         res = []
         target = cls._get_class(s.now)
         s.closest = s.get_closest(target)
-        if any(c.week == target.week and c.day == target.day for c in s.classes):
+        if any(c.date == target.date for c in s.classes):
             target = s.now
             current = True
         else:
@@ -30,9 +30,7 @@ class Command(AbstractCommand):
             res.append(f'{cls._label} пар нет! 😼 Вот расписание на {weekdays[target.day]}:')
             current = False
 
-        for c in sorted(filter(lambda c: c.week == target.week and
-                               c.day == target.day,
-                               s.classes)):
+        for c in filter(lambda c: c.date == target.date, s.classes):
             if c.class_ > target.class_ or not current:
                 res.append(f'{ClassStatus.NEXT} {c}')
             elif c.class_ == target.class_:

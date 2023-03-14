@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from src.bot.commands.classes_today import Command as BaseCommand
 from src.schedule.class_ import Class
 
@@ -15,4 +17,5 @@ class Command(BaseCommand):
         else:
             now.day += 1
         now.class_ = 0
+        now.date += timedelta(days=1)
         return now

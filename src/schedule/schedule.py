@@ -2,8 +2,12 @@ import re
 from bisect import bisect_left
 from datetime import datetime, time
 from functools import singledispatchmethod
+from itertools import chain
 from math import floor
 from typing import Type, Union, List
+
+from asyncache import cached
+from cachetools import TTLCache
 
 from src.bot.entities import Student, Lecturer
 from src.misc.dates import utc_timestamp_ms, js_weekday
@@ -29,6 +33,7 @@ class Schedule:
                 break
         else:
             res['class'] = 9
+        res['date'] = datetime.now().date()
         return self.class_type(res, self.ci)
 
     def get_closest(self, now: Class) -> Class:
@@ -41,8 +46,14 @@ class Schedule:
         for x in self.classes:
             x['discipline'] = re.sub(' \(.*.\)$', '', x['discipline'])
         self.ci = await request('class-intervals')
-        self.classes = [self.class_type(x, self.ci) for x in self.classes]
-        self.classes = list(filter(lambda x: x.discipline != '-', self.classes))
+        self.classes = list(sorted(
+            filter(lambda x: x.discipline != '-',
+                   chain.from_iterable(
+                       ((self.class_type(dict(**x, date=datetime.strptime(d, '%Y-%m-%d').date()), self.ci)
+                            for d in x['dates'])
+                        for x in self.classes)
+                   ))
+        ))
         self.now = await self.get_now()
 
     @singledispatchmethod
@@ -65,6 +76,7 @@ class Schedule:
     mfws: int
 
     @classmethod
+    @cached(TTLCache(4096, 60))
     async def create(cls, user: Union[Student, Lecturer], class_type: Type[Class]):
         self = Schedule()
         self.class_type = class_type

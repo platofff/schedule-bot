@@ -12,16 +12,14 @@ class Command(AbstractCommand):
     @classmethod
     async def run(cls, msg: Message, s: Schedule):
         s.closest = s.get_closest(s.now)
-        if s.now.day != s.closest.day or s.now.week != s.closest.week:
+        if s.now.date != s.closest.date:
             return await msg.api.send_text(msg.ctx, 'Пары закончились. Пора отдыхать 😼')
         res = []
 
-        dt = datetime.now().strftime('%Y-%m-%d')
-
-        for c in sorted(filter(lambda c: dt in c.dates, s.classes)):
+        for c in filter(lambda c: c.date == s.now.date, s.classes):
             if c.class_ == s.closest.class_:
                 res.append(f'{ClassStatus.CURRENT} {c}')
-            else:
+            elif c.class_ > s.closest.class_:
                 res.append(f'{ClassStatus.NEXT} {c}')
         if not res:
             res = 'Пары закончились. Пора отдыхать 😼'
