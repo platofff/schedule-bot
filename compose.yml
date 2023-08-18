@@ -5,8 +5,6 @@ services:
     volumes:
     - db:/home/app/db
     environment:
-      PYPY_GC_MAX: 4GB
-      PYPY_GC_MIN: 2GB
       LANG: en_US.UTF-8
       LC_ALL: en_US.UTF-8
       VK_BOT_TOKEN: ${VK_BOT_TOKEN}

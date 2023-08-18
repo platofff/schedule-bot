@@ -18,6 +18,7 @@ class VkBotAPI(AbstractBotAPI):
     def _keyboard_adapter(k: Keyboard) -> str:
         res = VkKeyboard(one_time=False, inline=False)
         last_row = len(k) - 1
+        print(k)
         for i, row in enumerate(k):
             for btn in row:
                 res.add(Text(btn.text), color=KeyboardButtonColor[btn.color])
@@ -27,7 +28,6 @@ class VkBotAPI(AbstractBotAPI):
 
     def __init__(self, token: str):
         AbstractBotAPI.__init__(self)
-        self._keyboards[None] = None
         logging.getLogger('vkbottle').setLevel(logging.INFO)
         self._bot = Bot(token=token)
         self._bot.labeler.message_view.replace_mention = True
@@ -53,7 +53,7 @@ class VkBotAPI(AbstractBotAPI):
     def add_text_handler(self, fn: Callable[[Message], Coroutine]):
         self._text_handlers.append(fn)
 
-    async def send_text(self, ctx: VkMessage, text: str, keyboard: Union[str, None] = None):
+    async def send_text(self, ctx: VkMessage, text: str, keyboard: Union[Keyboard, None] = None):
         await ctx.answer(text, keyboard=self._keyboards[keyboard])
 
     class ClassType(Class):

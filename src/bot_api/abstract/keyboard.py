@@ -1,16 +1,14 @@
 from dataclasses import dataclass
-from typing import List
+from typing import Tuple
 
-
-@dataclass
+@dataclass(frozen=True)
 class Button:
     text: str
     color: str
 
 
-class Row(List[Button]):
+class Row(Tuple[Button, ...]):
     pass
 
-
-class Keyboard(List[Row]):
+class Keyboard(Tuple[Row, ...]):
     pass

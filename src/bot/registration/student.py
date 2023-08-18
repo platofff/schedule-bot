@@ -1,5 +1,6 @@
 from src.bot.entities import Message, Student
 from src.bot.registration.abstract import AbstractRegistration
+from src.bot_api.abstract import Keyboards
 from src.db import db
 from src.schedule.api import request as schedule_api_rq
 
@@ -9,7 +10,8 @@ class StudentRegistration(AbstractRegistration):
 
     @staticmethod
     async def start(msg: Message):
-        await msg.api.send_text(msg.ctx, 'Отлично. Теперь отправьте мне название своего факультета', 'reset_btn')
+        await msg.api.send_text(msg.ctx, 'Отлично. Теперь отправьте мне название своего факультета',
+                                Keyboards.RESET)
 
     @staticmethod
     async def fill_faculty(msg: Message):
@@ -26,7 +28,7 @@ class StudentRegistration(AbstractRegistration):
         tmp = db[msg.sid]
         tmp.faculty = faculty_id
         db[msg.sid] = tmp
-        await msg.api.send_text(msg.ctx, 'Принято. На каком курсе вы обучаетесь (1-6)?', 'reset_btn')
+        await msg.api.send_text(msg.ctx, 'Принято. На каком курсе вы обучаетесь (1-6)?', Keyboards.RESET)
 
     @staticmethod
     async def fill_year(msg: Message):
@@ -36,7 +38,8 @@ class StudentRegistration(AbstractRegistration):
         except (ValueError, AssertionError):
             return await msg.api.send_text(msg.ctx, 'Номер курса должен быть от 1 до 6!')
         db[msg.sid] = tmp
-        await msg.api.send_text(msg.ctx, 'OK. Теперь напишите название своей группы (например "РПИа")', 'reset_btn')
+        await msg.api.send_text(msg.ctx, 'OK. Теперь напишите название своей группы (например "РПИа")',
+                                Keyboards.RESET)
 
     @staticmethod
     async def fill_group(msg: Message):
@@ -47,8 +50,9 @@ class StudentRegistration(AbstractRegistration):
             return await msg.api.send_text(msg.ctx, 'Выберите свою группу из списка:\n- ' + '\n- '.join(groups))
         tmp.group = msg.text
         db[msg.sid] = tmp
-        await msg.api.send_text(msg.ctx, 'Бот настроен. Теперь вам доступны команды, указанные на кнопках клавиатуры.',
-                                'set')
+        await msg.api.send_text(msg.ctx,
+                            'Бот настроен. Теперь вам доступны команды, указанные на кнопках клавиатуры.',
+                                Keyboards.DEFAULT)
 
     FIELD_SETTERS = {
         'faculty': fill_faculty,

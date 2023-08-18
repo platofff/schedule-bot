@@ -2,9 +2,9 @@ import asyncio
 from typing import Iterable, List
 
 from src.bot import commands
-from src.bot.entities import Message, Student
-from src.bot.registration import CommonRegistration, StudentRegistration, LecturerRegistration
-from src.bot_api.abstract import AbstractBotAPI, CommonMessages
+from src.bot.entities import Message
+from src.bot.registration import CommonRegistration
+from src.bot_api.abstract import AbstractBotAPI, CommonMessages, Keyboards
 from src.db import db
 from src.schedule.schedule import Schedule
 
@@ -31,7 +31,7 @@ class Bot:
         if 'classes' not in dir(schedule) or not schedule.classes:
             del db[msg.sid]
             await msg.api.send_text(msg.ctx, 'Произошла ошибка: расписание для вас не найдено!')
-            return await msg.api.send_text(msg.ctx, CommonMessages.START, 'role')
+            return await msg.api.send_text(msg.ctx, CommonMessages.START, Keyboards.START)
 
         ltext = msg.text.lower()
         for cname in commands.__all__:

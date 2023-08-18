@@ -24,7 +24,6 @@ class TelegramBotAPI(AbstractBotAPI):
     def __init__(self, token: str):
         AbstractBotAPI.__init__(self)
         logging.getLogger('aiogram').setLevel(logging.INFO)
-        self._keyboards[None] = None
         self._bot = Bot(token)
         self._dp = Dispatcher(self._bot)
 
@@ -44,7 +43,7 @@ class TelegramBotAPI(AbstractBotAPI):
     def add_text_handler(self, fn: Callable[[Message], Coroutine]):
         self._text_handlers.append(fn)
 
-    async def send_text(self, ctx: TgMessage, text: str, keyboard: Union[str, None] = None):
+    async def send_text(self, ctx: TgMessage, text: str, keyboard: Union[Keyboard, None] = None):
         await ctx.answer(text, parse_mode='HTML', reply_markup=self._keyboards[keyboard])
 
     class ClassType(Class):

@@ -1,16 +1,18 @@
 from src.bot_api.abstract.keyboard import *
 
-keyboards = {
-    'set': Keyboard([
+from dataclasses import dataclass
+
+@dataclass
+class Keyboards:
+    DEFAULT = Keyboard([
         Row([Button('Пара', 'POSITIVE'), Button('Пары сегодня', 'PRIMARY')]),
         Row([Button('Пары завтра', 'SECONDARY'), Button('Сброс', 'NEGATIVE')])
-    ]),
+    ])
 
-    'role': Keyboard([
+    START = Keyboard([
         Row([Button('Преподаватель', 'PRIMARY'), Button('Студент', 'POSITIVE')])
-    ]),
+    ])
 
-    'reset_btn': Keyboard([
+    RESET = Keyboard([
         Row([Button('Сброс', 'NEGATIVE')])
     ])
-}

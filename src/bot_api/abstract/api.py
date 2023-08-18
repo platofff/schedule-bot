@@ -1,18 +1,21 @@
 import asyncio
 from abc import ABC, abstractmethod
-from typing import Callable, Any, Union, Coroutine
+from dataclasses import fields
+from typing import Callable, Any, Union, Coroutine, Dict
 
-from src.bot_api.abstract.keyboards import Keyboard, keyboards
+from src.bot_api.abstract.keyboards import Keyboard, Keyboards
 from src.schedule.class_ import Class
 
 
 class AbstractBotAPI(ABC):
     task: asyncio.Task
-    _keyboards: dict
+    _keyboards: Dict[Union[Keyboard, None], Any] = {None: None}
 
     @abstractmethod
     def __init__(self):
-        self._keyboards = {k: self._keyboard_adapter(v) for k, v in keyboards.items()}
+        for field in fields(Keyboards):
+            value = field.default
+            self._keyboards[value] = self._keyboard_adapter(value)
 
     @abstractmethod
     def add_text_handler(self, fn: Callable[[Any], Coroutine]):

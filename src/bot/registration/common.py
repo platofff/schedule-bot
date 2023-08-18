@@ -5,7 +5,7 @@ from src.db import db
 from .abstract import AbstractRegistration
 from .lecturer import LecturerRegistration
 from .student import StudentRegistration
-from ...bot_api.abstract import CommonMessages
+from ...bot_api.abstract import CommonMessages, Keyboards
 
 
 class CommonRegistration:
@@ -23,7 +23,7 @@ class CommonRegistration:
             await Registration.start(msg)
         except KeyError:
             await msg.api.send_text(msg.ctx,f'Выберите один из вариантов: '
-                                            f'{", ".join(CommonRegistration._USER_TYPES.keys())}', 'role')
+                                            f'{", ".join(CommonRegistration._USER_TYPES.keys())}', Keyboards.START)
 
     @staticmethod
     async def get_or_register_user(msg: Message) -> Union[User, None]:
@@ -34,7 +34,7 @@ class CommonRegistration:
 
         if msg.text == 'Сброс':
             del db[msg.sid]
-            await msg.api.send_text(msg.ctx, CommonMessages.START, 'role')
+            await msg.api.send_text(msg.ctx, CommonMessages.START, Keyboards.START)
             return None
 
         Registration = CommonRegistration._REGISTRATIONS_MAP[type(user)]
