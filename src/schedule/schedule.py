@@ -9,7 +9,7 @@ from typing import Type, Union, List
 from asyncache import cached
 from cachetools import TTLCache
 
-from src.bot.entities import Student, Lecturer
+from src.bot.entities import Student, Lecturer, User
 from src.misc.dates import utc_timestamp_ms, js_weekday
 from src.schedule.api import request
 from src.schedule.class_ import Class
@@ -77,7 +77,7 @@ class Schedule:
 
     @classmethod
     @cached(TTLCache(4096, 60))
-    async def create(cls, user: Union[Student, Lecturer], class_type: Type[Class]):
+    async def create(cls, user: User, class_type: Type[Class]):
         self = Schedule()
         self.class_type = class_type
         await self._fetch(user)

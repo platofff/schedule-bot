@@ -3,14 +3,13 @@ from typing import Iterable, List
 
 from src.bot import commands
 from src.bot.entities import Message, Student
-from src.bot.registration import Registration
-from src.bot_api.abstract import AbstractBotAPI
+from src.bot.registration import CommonRegistration, StudentRegistration, LecturerRegistration
+from src.bot_api.abstract import AbstractBotAPI, CommonMessages
 from src.db import db
 from src.schedule.schedule import Schedule
 
 
 class Bot:
-    _registration: Registration
     _tasks: List[asyncio.Task] = []
 
     async def run(self):
@@ -20,26 +19,19 @@ class Bot:
         for api in apis:
             api.add_text_handler(self._handler)
             self._tasks.append(api.task)
-        self._registration = Registration()
 
-    async def _handler(self, msg: Message) -> None:
-        if msg.sid not in db:
-            return await self._registration.register(msg)
-        if msg.text == 'Сброс':
-            return await commands.reset.Command.run(msg, None)
-        user = db[msg.sid]
-        if type(user) is Student:
-            if user.faculty is None:
-                return await self._registration.student.fill_faculty(msg)
-            if user.year is None:
-                return await self._registration.student.fill_year(msg)
-            if user.group is None:
-                return await self._registration.student.fill_group(msg)
-        else:
-            if user.name is None:
-                return await self._registration.lecturer.fill_name(msg)
+    @classmethod
+    async def _handler(cls, msg: Message) -> None:
+        user = await CommonRegistration.get_or_register_user(msg)
+        if user is None:
+            return
 
         schedule = await Schedule.create(user, msg.api.ClassType)
+
+        if 'classes' not in dir(schedule) or not schedule.classes:
+            del db[msg.sid]
+            await msg.api.send_text(msg.ctx, 'Произошла ошибка: расписание для вас не найдено!')
+            return await msg.api.send_text(msg.ctx, CommonMessages.START, 'role')
 
         ltext = msg.text.lower()
         for cname in commands.__all__:
