@@ -9,6 +9,7 @@ services:
       LC_ALL: en_US.UTF-8
       VK_BOT_TOKEN: ${VK_BOT_TOKEN}
       TG_BOT_TOKEN: ${TG_BOT_TOKEN}
+      OPENAI_KEY: ${OPENAI_KEY}
       DB_PATH: /home/app/db
 
 volumes:
