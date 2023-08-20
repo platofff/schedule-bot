@@ -26,7 +26,7 @@ class Bot:
         if user is None:
             return
 
-        schedule = await Schedule.create(user, msg.api.ClassType)
+        schedule = await Schedule.create(user)
 
         if 'classes' not in dir(schedule) or not schedule.classes:
             del db[msg.sid]
@@ -36,5 +36,7 @@ class Bot:
         ltext = msg.text.lower()
         for cname in commands.__all__:
             command = getattr(commands, cname)
-            if any(ltext.startswith(x) for x in command.triggers):
+            if command.triggers is not None and any(ltext.startswith(x) for x in command.triggers):
                 return await command.Command.run(msg, schedule)
+
+        return await commands.gpt.Command.run(msg, schedule)

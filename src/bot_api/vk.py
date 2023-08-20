@@ -18,7 +18,6 @@ class VkBotAPI(AbstractBotAPI):
     def _keyboard_adapter(k: Keyboard) -> str:
         res = VkKeyboard(one_time=False, inline=False)
         last_row = len(k) - 1
-        print(k)
         for i, row in enumerate(k):
             for btn in row:
                 res.add(Text(btn.text), color=KeyboardButtonColor[btn.color])

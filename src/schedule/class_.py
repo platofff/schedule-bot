@@ -1,46 +1,21 @@
-from abc import abstractmethod
+from abc import ABC
 import datetime
+import dataclasses
+from dataclasses import dataclass, make_dataclass, fields
 
 
-class Class:
-    lecturer = ''
+@dataclass
+class ClassInterval:
+    start: str
+    end: str
+
+@dataclass
+class BaseClass:
+    week: int
+    day: int
+    interval: ClassInterval
     date: datetime.date
-    _interval: dict
-    _ci: dict
-    _class: int
-
-    @property
-    def interval(self):
-        return self._interval
-
-    @property
-    def class_(self):
-        return self._class
-
-    @class_.setter
-    def class_(self, v):
-        self._class = int(v)
-        try:
-            self._interval = self._ci[str(self._class)]
-        except KeyError:
-            pass
-
-    def __init__(self, c: dict, ci: dict):
-        self.week = c['week']
-        self.day = c['day']
-        self._ci = ci
-        self.class_ = int(c['class'])
-        self.date = c['date']
-        try:
-            self.lecturer = c['lecturer']
-        except KeyError:
-            pass
-        try:
-            self.discipline = c['discipline']
-            self.type = c['type']
-            self.auditorium = c['auditorium']
-        except KeyError:
-            pass
+    class_: int
 
     def __lt__(self, other):
         if self.date < other.date:
@@ -49,14 +24,31 @@ class Class:
             return False
         return int(f'{self.week}{self.day}{self.class_}') < int(f'{other.week}{other.day}{other.class_}')
 
-    @abstractmethod
-    def _bold_text(self, t: str) -> str:
-        pass
+
+@dataclass
+class Class(ABC, BaseClass):
+    discipline: str
+    type: str
+    auditorium: str
+
 
     def __str__(self):
-        r = f'{self.interval["start"]}–{self.interval["end"]} {self._bold_text(self.auditorium)}\n' \
+        r = f'{self.interval.start}–{self.interval.end} {self.auditorium}\n' \
             f'{self.discipline}'
-        if self.lecturer != '':
-            r += f'\n{self.lecturer}'
         return r
 
+@dataclass
+class StudentClass(Class):
+    lecturer: str
+    def __str__(self):
+        r = Class.__str__(self)
+        r += f'\n{self.lecturer}'
+        return r
+@dataclass
+class LecturerClass(Class):
+    groups: str
+
+    def __str__(self):
+        r = Class.__str__(self)
+        r += f'\n{self.groups}'
+        return r

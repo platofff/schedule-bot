@@ -1,5 +1,8 @@
 import asyncio
+import os
 from os import getenv
+
+import openai
 
 from src.bot.bot import Bot
 from src.bot_api.telegram import TelegramBotAPI
@@ -8,6 +11,7 @@ from src.bot_api.vk import VkBotAPI
 
 async def main():
     apis = []
+    openai.api_key = os.environ["OPENAI_KEY"]
     vk_token = getenv('VK_BOT_TOKEN')
     tg_token = getenv('TG_BOT_TOKEN')
     if vk_token:

@@ -22,7 +22,7 @@ class AbstractBotAPI(ABC):
         pass
 
     @abstractmethod
-    async def send_text(self, ctx: Any, text: str, keyboard: Union[str, None] = None):
+    async def send_text(self, ctx: Any, text: str, keyboard: Union[Keyboard, None] = None):
         pass
 
     @abstractmethod
