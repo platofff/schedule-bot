@@ -46,7 +46,7 @@ class VkBotAPI(AbstractBotAPI):
             for h in self._text_handlers:
                 asyncio.create_task(h(Message(self, message, message.text, self._user_id(message))))
 
-        self.task = asyncio.create_task(self._bot.run_polling())
+        self.task = asyncio.get_event_loop().create_task(self._bot.run_polling())
 
     def add_text_handler(self, fn: Callable[[Message], Coroutine]):
         self._text_handlers.append(fn)

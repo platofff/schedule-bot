@@ -41,7 +41,7 @@ class ScheduleFunction(GPTOutputFunction, ABC):
         else:
             default_status = ClassStatus.PAST
         return f'''Расписание на {result.date.strftime('%d.%m.%Y')}, {WEEKDAYS[result.date.weekday()]}
-    {format_classes(result.classes, result.class_index, default_status)}'''
+{format_classes(result.classes, result.class_index, default_status)}'''
 
 
 @dataclass

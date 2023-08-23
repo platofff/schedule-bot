@@ -38,7 +38,7 @@ class Class(ABC, BaseClass):
 
     def __str__(self):
         r = f'{self.interval.start}–{self.interval.end} {self.auditorium}\n' \
-            f'{self.discipline}'
+            f'{self.discipline} ({self.type})'
         return r
 
 @dataclass
