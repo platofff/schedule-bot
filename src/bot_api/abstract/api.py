@@ -8,10 +8,10 @@ from src.bot_api.abstract.keyboards import Keyboard, Keyboards
 
 class AbstractBotAPI(ABC):
     task: asyncio.Task
-    _keyboards: Dict[Union[Keyboard, None], Any] = {None: None}
 
     @abstractmethod
     def __init__(self):
+        self._keyboards: Dict[Union[Keyboard, None], Any] = {None: None}
         for field in fields(Keyboards):
             value = field.default
             self._keyboards[value] = self._keyboard_adapter(value)
