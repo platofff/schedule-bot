@@ -4,7 +4,6 @@ from dataclasses import fields
 from typing import Callable, Any, Union, Coroutine, Dict
 
 from src.bot_api.abstract.keyboards import Keyboard, Keyboards
-from src.schedule.class_ import Class
 
 
 class AbstractBotAPI(ABC):
@@ -27,9 +26,6 @@ class AbstractBotAPI(ABC):
 
     @abstractmethod
     def _user_id(self, ctx: Any) -> str:
-        pass
-
-    class ClassType(Class, ABC):
         pass
 
     @staticmethod

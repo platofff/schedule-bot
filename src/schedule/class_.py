@@ -1,13 +1,14 @@
-from abc import ABC
 import datetime
-import dataclasses
-from dataclasses import dataclass, make_dataclass, fields
+from abc import ABC
+from dataclasses import dataclass, asdict
+from typing import Dict, Union
 
 
 @dataclass
 class ClassInterval:
     start: str
     end: str
+
 
 @dataclass
 class BaseClass:
@@ -22,8 +23,7 @@ class BaseClass:
             return True
         if self.date > other.date:
             return False
-        return int(f'{self.week}{self.day}{self.class_}') < int(f'{other.week}{other.day}{other.class_}')
-
+        return self.class_ < other.class_
 
 @dataclass
 class Class(ABC, BaseClass):
@@ -31,6 +31,10 @@ class Class(ABC, BaseClass):
     type: str
     auditorium: str
 
+    def simplified(self) -> Dict[str, Union[int, str]]:
+        result = asdict(self)
+        del result['week']
+        return result
 
     def __str__(self):
         r = f'{self.interval.start}–{self.interval.end} {self.auditorium}\n' \

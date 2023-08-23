@@ -8,7 +8,6 @@ from aiogram.types import Message as TgMessage, ReplyKeyboardMarkup, KeyboardBut
 from src.bot.entities import Message
 from src.bot_api.abstract import AbstractBotAPI, CommonMessages, Keyboard
 from src.db import db
-from src.schedule.class_ import Class
 
 
 class TelegramBotAPI(AbstractBotAPI):
@@ -45,10 +44,6 @@ class TelegramBotAPI(AbstractBotAPI):
 
     async def send_text(self, ctx: TgMessage, text: str, keyboard: Union[Keyboard, None] = None):
         await ctx.answer(text, parse_mode='HTML', reply_markup=self._keyboards[keyboard])
-
-    class ClassType(Class):
-        def _bold_text(self, text: str) -> str:
-            return f'<b>{text}</b>'
 
     def _user_id(self, ctx: TgMessage) -> str:
         return f'tg{ctx.from_user}'

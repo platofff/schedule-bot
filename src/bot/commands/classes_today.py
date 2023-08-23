@@ -1,10 +1,8 @@
-from datetime import datetime
-
 from src.bot.commands._abstract import AbstractCommand
 from src.bot.entities import Message
 from src.misc.class_status import ClassStatus
-from src.misc.weekdays import weekdays
-from src.schedule.class_ import Class
+from src.misc.weekdays import WEEKDAYS_DATIVE
+from src.schedule.class_ import BaseClass
 from src.schedule.schedule import Schedule
 
 triggers = {'пары сегодня'}
@@ -14,7 +12,7 @@ class Command(AbstractCommand):
     _label = 'Сегодня'
 
     @staticmethod
-    def _get_class(now: Class) -> Class:
+    def _get_class(now: BaseClass) -> BaseClass:
         return now
 
     @classmethod
@@ -27,7 +25,7 @@ class Command(AbstractCommand):
             current = True
         else:
             target = s.closest
-            res.append(f'{cls._label} пар нет! 😼 Вот расписание на {weekdays[target.day]}:')
+            res.append(f'{cls._label} пар нет! 😼 Вот расписание на {WEEKDAYS_DATIVE[target.day]}:')
             current = False
 
         for c in filter(lambda c: c.date == target.date, s.classes):

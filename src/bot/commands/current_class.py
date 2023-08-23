@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from src.bot.commands._abstract import AbstractCommand
 from src.bot.entities import Message
 from src.misc.class_status import ClassStatus

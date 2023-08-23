@@ -8,7 +8,6 @@ from vkbottle.bot import rules, Message as VkMessage
 from src.bot.entities import Message
 from src.bot_api.abstract import AbstractBotAPI, CommonMessages, Keyboard
 from src.db import db
-from src.schedule.class_ import Class
 
 
 class VkBotAPI(AbstractBotAPI):
@@ -54,17 +53,6 @@ class VkBotAPI(AbstractBotAPI):
 
     async def send_text(self, ctx: VkMessage, text: str, keyboard: Union[Keyboard, None] = None):
         await ctx.answer(text, keyboard=self._keyboards[keyboard])
-
-    class ClassType(Class):
-        def _bold_text(self, text: str) -> str:
-            def bc():
-                for char in text:
-                    if char.isdigit():
-                        yield chr(ord(char) + 120764)
-                    else:
-                        yield char
-
-            return ''.join(bc())
 
     def _user_id(self, ctx: VkMessage) -> str:
         return f'vk{ctx.peer_id}'

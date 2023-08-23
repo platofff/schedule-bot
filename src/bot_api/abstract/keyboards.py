@@ -1,6 +1,6 @@
-from src.bot_api.abstract.keyboard import *
+from dataclasses import dataclass
 
-from dataclasses import dataclass, field
+from src.bot_api.abstract.keyboard import *
 
 
 @dataclass
