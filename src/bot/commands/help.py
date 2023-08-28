@@ -1,16 +1,14 @@
-from typing import Union
 from urllib.parse import urlencode
 
 from src.bot.commands._abstract import AbstractCommand
-from src.bot.entities import Message, Lecturer, Student
-from src.db import db
+from src.bot.entities import Message, Lecturer, Student, User
 
 triggers = {'start', 'help', 'помощь'}
 
 
 class Command(AbstractCommand):
     @staticmethod
-    def _get_url(user: Union[Lecturer, Student]):
+    def _get_url(user: User):
         if type(user) is Lecturer:
             params = {'for': 'lecturer', 'lecturer': user.name}
         else:
@@ -19,8 +17,7 @@ class Command(AbstractCommand):
         return f'https://schedule.npi-tu.ru/schedule.html?{urlencode(params)}'
 
     @classmethod
-    async def run(cls, msg: Message, _):
-        user = db[msg.sid]
+    async def run(cls, msg: Message, user: User):
         await msg.api.send_text(msg.ctx, f'Полное расписание: {cls._get_url(user)}\n'
                                          'Список команд:'
                                          '\n\n'

@@ -25,7 +25,7 @@ class AbstractBotAPI(ABC):
         pass
 
     @abstractmethod
-    def _user_id(self, ctx: Any) -> str:
+    async def get_username(self, ctx: Any) -> str:
         pass
 
     @staticmethod

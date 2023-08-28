@@ -8,10 +8,10 @@ from itertools import chain
 from math import floor
 from typing import Type, Union, List, Tuple, Callable, Dict, Set
 
-from asyncache import cached
-from cachetools import TTLCache
+from aiocache import cached
 
 from src.bot.entities import Student, Lecturer, User
+from src.misc.cache import cache_params
 from src.misc.class_status import ClassStatus
 from src.misc.dates import utc_timestamp_ms, js_weekday
 from src.schedule.api import request
@@ -53,7 +53,7 @@ class Schedule:
         d = utc_timestamp_ms()
         res['week'] = 1 if floor((d - self.mfws) / 604_800_000) % 2 == 0 else 2
         #dt = datetime.now()
-        dt = datetime(2024, 2, 26) # TODO
+        dt = datetime.now()
         res['day'] = js_weekday(dt)
         if res['day'] == 0:
             res['week'] = 1 if res['week'] == 2 else 1
@@ -134,9 +134,9 @@ class Schedule:
     class_types_set: Set[str] = set()
     role: str
 
-    @classmethod
-    @cached(TTLCache(4096, 60))
-    async def create(cls, user: User):
+    @staticmethod
+    @cached(**cache_params, namespace='schedule_create', ttl=60, key_builder=lambda _, user: user.json())
+    async def create(user: User) -> 'Schedule':
         self = Schedule()
         self.class_type, self.raw_classes = await self._fetch(user)
         await self._fetch_class_types()

@@ -1,9 +1,8 @@
 from src.bot.commands._abstract import AbstractCommand
-from src.bot.entities import Message
+from src.bot.entities import Message, User
 from src.misc.class_status import ClassStatus
 from src.misc.weekdays import WEEKDAYS_DATIVE
 from src.schedule.class_ import BaseClass
-from src.schedule.schedule import Schedule
 
 triggers = {'пары сегодня'}
 
@@ -16,8 +15,10 @@ class Command(AbstractCommand):
         return now
 
     @classmethod
-    async def run(cls, msg: Message, s: Schedule):
+    async def run(cls, msg: Message, user: User):
+        s = user.schedule
         res = []
+
         target = cls._get_class(s.now)
         s.closest = s.get_closest(target)
         if any(c.date == target.date for c in s.classes):

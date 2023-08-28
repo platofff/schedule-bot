@@ -1,6 +1,8 @@
-from abc import ABC
 from dataclasses import dataclass
-from typing import Any, Union
+from typing import Any, Optional
+
+from beanie import Document, Indexed
+from pydantic import Field, conint
 
 from src.bot_api.abstract import AbstractBotAPI
 
@@ -10,36 +12,28 @@ class Message:
     api: AbstractBotAPI
     ctx: Any
     text: str
-    sid: str
+    from_id: str
 
 
-class User(ABC):
-    pass
+class User(Document):
+    id: str = Field(default_factory=str)
+    username: Optional[str] = Field(default=None, exclude=True, repr=False)
+    schedule: Optional[Any] = Field(default=None, exclude=True, repr=False)
 
+    class Settings:
+        name = 'users'
+        is_root = True
 
-@dataclass
 class Student(User):
-    faculty: Union[None, str] = None
-    _year: Union[None, int] = None
-
-    @property
-    def year(self) -> Union[int, None]:
-        return self._year
-
-    @year.setter
-    def year(self, v: int) -> None:
-        assert 1 <= v <= 6
-        self._year = v
-
-    group: Union[None, str] = None
+    faculty: Optional[str]
+    year: Optional[conint(ge=1, le=6)]
+    group: Optional[str]
 
     def __hash__(self):
-        return hash((self.faculty, self._year, self.group))
+        return hash((self.id, self.faculty, self.year, self.group))
 
-
-@dataclass
 class Lecturer(User):
-    name: Union[None, str] = None
+    name: Optional[str]
 
     def __hash__(self):
-        return hash(self.name)
+        return hash((self.id, self.name))

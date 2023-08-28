@@ -1,4 +1,5 @@
 import datetime
+import locale
 import logging
 from abc import ABC
 from bisect import bisect_left
@@ -7,12 +8,11 @@ from time import strptime
 from typing import List, Type, Union
 
 from src.bot.commands._abstract import AbstractCommand
-from src.bot.entities import Message
-from src.db import db
+from src.bot.entities import Message, User
 from src.gpt import get_gpt_response, GPTMessage
 from src.gpt.gpt import GPTOutputFunction, GPTStringEnum, GPTIntegerEnum
 from src.misc.class_status import ClassStatus
-from src.misc.weekdays import WEEKDAYS
+from src.misc.weekdays import WEEKDAYS, WEEKDAYS_ENGLISH
 from src.schedule.class_ import Class
 from src.schedule.schedule import Schedule, format_classes
 
@@ -33,7 +33,7 @@ class ScheduleFunction(GPTOutputFunction, ABC):
         if result is None:
             return 'Расписание не найдено!'
 
-        now = datetime.date(2024, 2, 26)  # TODO
+        now = datetime.datetime.now().date()
         if result.date == now:
             default_status = None
         elif result.date > now:
@@ -46,12 +46,12 @@ class ScheduleFunction(GPTOutputFunction, ABC):
 
 @dataclass
 class DayScheduleFunction(ScheduleFunction):
-    name: str = field(default='print_schedule')
+    name: str = field(default='print_classes')
     classes: List[Class] = field(default=None)
 
-    async def __call__(self,date: str = '2024-02-26', offset: int = 0, # TODO
+    async def __call__(self,date: str = datetime.datetime.now().strftime('%Y-%m-%d'), offset: int = 0,
                        class_index: ClassIndex = 0) -> DaySchedule:
-        """Prints classes from user's schedule for a date. 'date' or 'offset' should be specified
+        """Prints classes from user's s for a date. 'date' or 'offset' should be specified
 
         Args:
             date: YYYY-MM-DD, default is today
@@ -90,13 +90,13 @@ class SearchDirection(GPTStringEnum):
 @dataclass
 class SearchAndPrintFunction(ScheduleFunction):
     name: str = field(default='search_class')
-    schedule: Schedule = field(default=None)
+    s: Schedule = field(default=None)
     ClassTypesEnum: Type[GPTStringEnum] = field(default=None)
     DisciplinesEnum: Type[GPTStringEnum] = field(default=None)
 
     async def __call__(self, direction: SearchDirection, discipline: DisciplinesEnum = None,
                        class_type: ClassTypesEnum = None) -> Union[None, DaySchedule]:
-        """Prints a class by criteria
+        """Prints closest or latest class by criteria
 
         Args:
             direction: search direction, closest or latest
@@ -107,17 +107,17 @@ class SearchAndPrintFunction(ScheduleFunction):
         logging.info(f'Calling {self.name} with direction={direction}, discipline={discipline}, '
                      f'class_type={class_type}')
 
-        start_idx = bisect_left(self.schedule.classes, self.schedule.now)
-        if start_idx >= len(self.schedule.classes):
+        start_idx = bisect_left(self.s.classes, self.s.now)
+        if start_idx >= len(self.s.classes):
             return None
 
-        search_range = range(start_idx, len(self.schedule.classes)) if direction == 'closest'\
+        search_range = range(start_idx, len(self.s.classes)) if direction == 'closest'\
             else range(start_idx, -1, -1)
         for i in search_range:
-            c = self.schedule.classes[i]
+            c = self.s.classes[i]
             if (discipline is None or c.discipline == discipline) and \
                 (class_type is None or c.type == class_type):
-                classes = list(filter(lambda x: x.date == c.date, self.schedule.classes))
+                classes = list(filter(lambda x: x.date == c.date, self.s.classes))
                 return DaySchedule(c.date, classes, c.class_)
 
         return None
@@ -131,23 +131,24 @@ class SearchAndPrintFunction(ScheduleFunction):
 
 class Command(AbstractCommand):
     @classmethod
-    async def run(cls, msg: Message, schedule: Schedule):
-        user = db[msg.sid]
+    async def run(cls, msg: Message, user: User):
+        s = user.schedule
+
         class DisciplinesEnum(GPTStringEnum):
-            possible_values = frozenset(schedule.disciplines_set)
+            possible_values = frozenset(s.disciplines_set)
 
         class ClassTypesEnum(GPTStringEnum):
-            possible_values = frozenset(schedule.class_types_set)
+            possible_values = frozenset(s.class_types_set)
 
+        now = datetime.datetime.now()
 
         text = await get_gpt_response([
-            GPTMessage(role=GPTMessage.Role.SYSTEM, content=f'''University schedule application
-Now is 2024-02-26 08:45 MSK, Monday
-User is {schedule.role}'''),
+            GPTMessage(role=GPTMessage.Role.SYSTEM, content=now.strftime(f'''University s application
+Now is %Y-%m-%d %H:%M MSK, %A\n''') + f'User is {s.role} {user.username}'),
             GPTMessage(role=GPTMessage.Role.USER, content=msg.text)
         ], [
-            DayScheduleFunction(classes=schedule.classes),
-            SearchAndPrintFunction(schedule=schedule,
+            DayScheduleFunction(classes=s.classes),
+            SearchAndPrintFunction(s=s,
                                    DisciplinesEnum=DisciplinesEnum, ClassTypesEnum=ClassTypesEnum)
         ])
 

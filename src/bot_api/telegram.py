@@ -5,9 +5,8 @@ from typing import Callable, Union, List, Coroutine
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message as TgMessage, ReplyKeyboardMarkup, KeyboardButton
 
-from src.bot.entities import Message
+from src.bot.entities import Message, User
 from src.bot_api.abstract import AbstractBotAPI, CommonMessages, Keyboard
-from src.db import db
 
 
 class TelegramBotAPI(AbstractBotAPI):
@@ -29,7 +28,7 @@ class TelegramBotAPI(AbstractBotAPI):
         @self._dp.message_handler()
         async def handle(message: TgMessage):
             if message.text == '/start':
-                if self._user_id(message) not in db.keys():
+                if await User.get(self._user_id(message), with_children=True) is None:
                     await message.answer(CommonMessages.HELLO)
                 text = 'Сброс'
             else:
@@ -45,5 +44,9 @@ class TelegramBotAPI(AbstractBotAPI):
     async def send_text(self, ctx: TgMessage, text: str, keyboard: Union[Keyboard, None] = None):
         await ctx.answer(text, parse_mode='HTML', reply_markup=self._keyboards[keyboard])
 
-    def _user_id(self, ctx: TgMessage) -> str:
+    async def get_username(self, ctx: TgMessage) -> str:
+        return f'{ctx.from_user.first_name} {ctx.from_user.last_name}'.strip()
+
+    @staticmethod
+    def _user_id(ctx: TgMessage) -> str:
         return f'tg{ctx.from_user}'

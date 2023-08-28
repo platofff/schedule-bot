@@ -1,7 +1,6 @@
-from typing import Type, Dict, Union
+from typing import Type, Dict, Optional
 
 from src.bot.entities import Message, User
-from src.db import db
 from .abstract import AbstractRegistration
 from .lecturer import LecturerRegistration
 from .student import StudentRegistration
@@ -13,33 +12,36 @@ class CommonRegistration:
         'Студент': StudentRegistration,
         'Преподаватель': LecturerRegistration
     }
-    _REGISTRATIONS_MAP: Dict[Type[User], Type[AbstractRegistration]] = dict(map(lambda x: (x.USER_TYPE, x), _USER_TYPES.values()))
+    _REGISTRATIONS_MAP: Dict[Type[User], Type[AbstractRegistration]] =\
+        dict(map(lambda x: (x.USER_TYPE, x), _USER_TYPES.values()))
 
     @staticmethod
     async def _start(msg: Message):
         try:
             Registration = CommonRegistration._USER_TYPES[msg.text]
-            db[msg.sid] = Registration.USER_TYPE()
-            await Registration.start(msg)
         except KeyError:
-            await msg.api.send_text(msg.ctx,f'Выберите один из вариантов: '
-                                            f'{", ".join(CommonRegistration._USER_TYPES.keys())}', Keyboards.START)
+            return await msg.api.send_text(msg.ctx, f'Выберите один из вариантов: '
+                                             f'{", ".join(CommonRegistration._USER_TYPES.keys())}', Keyboards.START)
+        user = Registration.USER_TYPE(id=msg.from_id)
+        await user.create()
+        await Registration.start(msg)
+
 
     @staticmethod
-    async def get_or_register_user(msg: Message) -> Union[User, None]:
-        if msg.sid not in db:
+    async def get_or_register_user(msg: Message) -> Optional[User]:
+        user = await User.get(msg.from_id, with_children=True)
+        if user is None:
             await CommonRegistration._start(msg)
             return None
-        user = db[msg.sid]
 
         if msg.text == 'Сброс':
-            del db[msg.sid]
+            await user.delete()
             await msg.api.send_text(msg.ctx, CommonMessages.START, Keyboards.START)
             return None
 
         Registration = CommonRegistration._REGISTRATIONS_MAP[type(user)]
         for field, setter in Registration.FIELD_SETTERS.items():
             if getattr(user, field) is None:
-                await setter(msg)
+                await setter(msg, user)
                 return None
         return user

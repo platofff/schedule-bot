@@ -6,7 +6,7 @@ from src.bot.entities import Message, User
 
 class AbstractRegistration(ABC):
     USER_TYPE: Type[User]
-    FIELD_SETTERS: Dict[str, Callable[[Message], Coroutine]]
+    FIELD_SETTERS: Dict[str, Callable[[Message, User], Coroutine]]
 
     @staticmethod
     @abstractmethod

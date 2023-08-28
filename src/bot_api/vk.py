@@ -1,13 +1,14 @@
 import asyncio
 import logging
-from typing import Callable, Union, List, Coroutine
+from typing import Callable, Union, List, Coroutine, Awaitable
 
+from aiocache import cached
 from vkbottle import Bot, Keyboard as VkKeyboard, KeyboardButtonColor, Text
 from vkbottle.bot import rules, Message as VkMessage
 
-from src.bot.entities import Message
+from src.bot.entities import Message, User
 from src.bot_api.abstract import AbstractBotAPI, CommonMessages, Keyboard
-from src.db import db
+from src.misc.cache import cache_params
 
 
 class VkBotAPI(AbstractBotAPI):
@@ -33,7 +34,7 @@ class VkBotAPI(AbstractBotAPI):
         @self._bot.on.chat_message(rules.ChatActionRule('chat_invite_user'))
         async def handler2(message: VkMessage):
             my_name = await self._bot.api.groups.get_by_id()
-            if self._user_id(message) not in db.keys():
+            if await User.get(self._user_id(message), with_children=True) is None:
                 m = CommonMessages.START + '\n'
             else:
                 m = ''
@@ -51,8 +52,17 @@ class VkBotAPI(AbstractBotAPI):
     def add_text_handler(self, fn: Callable[[Message], Coroutine]):
         self._text_handlers.append(fn)
 
-    async def send_text(self, ctx: VkMessage, text: str, keyboard: Union[Keyboard, None] = None):
-        await ctx.answer(text, keyboard=self._keyboards[keyboard])
+    def send_text(self, ctx: VkMessage, text: str, keyboard: Union[Keyboard, None] = None) -> Coroutine:
+        return ctx.answer(text, keyboard=self._keyboards[keyboard])
 
-    def _user_id(self, ctx: VkMessage) -> str:
+    @cached(**cache_params, namespace='vk_get_username', ttl=3600, key_builder=lambda _, __, from_id: str(from_id))
+    async def _get_username(self, from_id: int) -> str:
+        user = (await self._bot.api.users.get([from_id]))[0]
+        return f'{user.first_name} {user.last_name}'
+
+    def get_username(self, ctx: VkMessage) -> Awaitable[str]:
+        return self._get_username(ctx.from_id)
+
+    @staticmethod
+    def _user_id(ctx: VkMessage) -> str:
         return f'vk{ctx.peer_id}'

@@ -6,3 +6,4 @@ WEEKDAYS_DATIVE = {1: 'понедельник',
                    6: 'субботу'}
 
 WEEKDAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота", "Воскресенье"]
+WEEKDAYS_ENGLISH = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]

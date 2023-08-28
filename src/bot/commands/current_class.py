@@ -1,14 +1,14 @@
 from src.bot.commands._abstract import AbstractCommand
-from src.bot.entities import Message
+from src.bot.entities import Message, User
 from src.misc.class_status import ClassStatus
-from src.schedule.schedule import Schedule
 
 triggers = {'пара'}
 
 
 class Command(AbstractCommand):
     @classmethod
-    async def run(cls, msg: Message, s: Schedule):
+    async def run(cls, msg: Message, user: User):
+        s = user.schedule
         s.closest = s.get_closest(s.now)
         if s.now.date != s.closest.date:
             return await msg.api.send_text(msg.ctx, 'Пары закончились. Пора отдыхать 😼')

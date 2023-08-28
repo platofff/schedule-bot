@@ -1,7 +1,8 @@
+from pydantic import ValidationError
+
 from src.bot.entities import Message, Student
 from src.bot.registration.abstract import AbstractRegistration
 from src.bot_api.abstract import Keyboards
-from src.db import db
 from src.schedule.api import request as schedule_api_rq
 
 
@@ -14,7 +15,7 @@ class StudentRegistration(AbstractRegistration):
                                 Keyboards.RESET)
 
     @staticmethod
-    async def fill_faculty(msg: Message):
+    async def set_faculty(msg: Message, user: Student):
         faculty = msg.text.upper()
         faculties = await schedule_api_rq('faculties')
         faculty_id = None
@@ -25,37 +26,35 @@ class StudentRegistration(AbstractRegistration):
         if faculty_id is None:
             return await msg.api.send_text(msg.ctx, 'Факультет не найден! Выберите один из списка:\n- ' +
                                            '\n- '.join([f['code'] for f in faculties.values()]))
-        tmp = db[msg.sid]
-        tmp.faculty = faculty_id
-        db[msg.sid] = tmp
-        await msg.api.send_text(msg.ctx, 'Принято. На каком курсе вы обучаетесь (1-6)?', Keyboards.RESET)
+        user.faculty = faculty_id
+        await user.save()
+        await msg.api.send_text(msg.ctx, f'Принято. На каком курсе вы обучаетесь?', Keyboards.RESET)
 
     @staticmethod
-    async def fill_year(msg: Message):
-        tmp = db[msg.sid]
+    async def set_year(msg: Message, user: Student):
         try:
-            tmp.year = int(msg.text)
-        except (ValueError, AssertionError):
-            return await msg.api.send_text(msg.ctx, 'Номер курса должен быть от 1 до 6!')
-        db[msg.sid] = tmp
+            user.year = int(msg.text)
+        except (ValueError, ValidationError):
+            fi = Student.__fields__['year'].field_info
+            return await msg.api.send_text(msg.ctx, f'Номер курса должен быть от {fi.ge} до {fi.le}!')
+        await user.save()
         await msg.api.send_text(msg.ctx, 'OK. Теперь напишите название своей группы (например "РПИа")',
                                 Keyboards.RESET)
 
     @staticmethod
-    async def fill_group(msg: Message):
-        tmp = db[msg.sid]
+    async def set_group(msg: Message, user: Student):
         groups = [x[0] for x in await schedule_api_rq(
-            f'faculties/{tmp.faculty}/years/{tmp.year}/groups')]
+            f'faculties/{user.faculty}/years/{user.year}/groups')]
         if msg.text not in groups:
             return await msg.api.send_text(msg.ctx, 'Выберите свою группу из списка:\n- ' + '\n- '.join(groups))
-        tmp.group = msg.text
-        db[msg.sid] = tmp
+        user.group = msg.text
+        await user.save()
         await msg.api.send_text(msg.ctx,
                             'Бот настроен. Теперь вам доступны команды, указанные на кнопках клавиатуры.',
                                 Keyboards.DEFAULT)
 
     FIELD_SETTERS = {
-        'faculty': fill_faculty,
-        'year': fill_year,
-        'group': fill_group
+        'faculty': set_faculty,
+        'year': set_year,
+        'group': set_group
     }
