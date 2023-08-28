@@ -1,5 +1,4 @@
 import datetime
-import locale
 import logging
 from abc import ABC
 from bisect import bisect_left
@@ -12,7 +11,7 @@ from src.bot.entities import Message, User
 from src.gpt import get_gpt_response, GPTMessage
 from src.gpt.gpt import GPTOutputFunction, GPTStringEnum, GPTIntegerEnum
 from src.misc.class_status import ClassStatus
-from src.misc.weekdays import WEEKDAYS, WEEKDAYS_ENGLISH
+from src.misc.weekdays import WEEKDAYS
 from src.schedule.class_ import Class
 from src.schedule.schedule import Schedule, format_classes
 
