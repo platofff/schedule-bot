@@ -6,7 +6,7 @@ from datetime import datetime, time
 from functools import singledispatchmethod
 from itertools import chain
 from math import floor
-from typing import Type, Union, List, Tuple, Callable, Dict, Set
+from typing import Type, Union, List, Tuple, Callable, Dict, Set, Iterator
 
 from aiocache import cached
 
@@ -85,15 +85,19 @@ class Schedule:
             x['date'] = datetime.strptime(d, '%Y-%m-%d').date()
             return self.class_type(**x)
 
-        def process_classes(x):
+        def process_classes(x) -> Iterator[Class]:
             x['class_'] = x['class']
             del x['class']
             x['interval'] = self.get_interval(x['class_'])
             x['discipline'] = re.sub(' \(.*.\)$', '', x['discipline'])
-            x['type'] = self.class_types[x['type']].name
+            try:
+                x['type'] = self.class_types[x['type']].name
+            except KeyError:
+                # Class type is invalid => class is invalid
+                return
             self.disciplines_set.add(x['discipline'])
             self.class_types_set.add(x['type'])
-            return (get_class(copy.copy(x), d) for d in x['dates'])
+            yield from (get_class(copy.copy(x), d) for d in x['dates'])
 
         self.classes = list(sorted(
             filter(lambda x: x.discipline != '-',

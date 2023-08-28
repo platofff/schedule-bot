@@ -30,6 +30,7 @@ class Class(ABC, BaseClass):
     discipline: str
     type: str
     auditorium: str
+    groups: str
 
     def simplified(self) -> Dict[str, Union[int, str]]:
         result = asdict(self)
@@ -50,8 +51,6 @@ class StudentClass(Class):
         return r
 @dataclass
 class LecturerClass(Class):
-    groups: str
-
     def __str__(self):
         r = Class.__str__(self)
         r += f'\n{self.groups}'
