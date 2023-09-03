@@ -5,11 +5,12 @@ from src.bot import commands
 from src.bot.entities import Message
 from src.bot.registration import CommonRegistration
 from src.bot_api.abstract import AbstractBotAPI, CommonMessages, Keyboards
+from src.gpt.keys import OpenAIKeysManager
 from src.schedule.schedule import Schedule
-
 
 class Bot:
     _tasks: List[asyncio.Task] = []
+    _km: OpenAIKeysManager
 
     async def run(self):
         await asyncio.gather(*self._tasks)
@@ -19,8 +20,8 @@ class Bot:
             api.add_text_handler(self._handler)
             self._tasks.append(api.task)
 
-    @classmethod
-    async def _handler(cls, msg: Message) -> None:
+    @staticmethod
+    async def _handler(msg: Message):
         user = await CommonRegistration.get_or_register_user(msg)
         if user is None:
             return
@@ -38,4 +39,7 @@ class Bot:
             if command.triggers is not None and any(ltext.startswith(x) for x in command.triggers):
                 return await command.Command.run(msg, user)
 
-        return await commands.gpt.Command.run(msg, user)
+        await msg.api.set_typing_state(msg.ctx, True)
+        result = await commands.gpt.Command.run(msg, user)
+        await msg.api.set_typing_state(msg.ctx, False)
+        return result

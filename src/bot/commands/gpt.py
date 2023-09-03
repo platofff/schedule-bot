@@ -3,16 +3,16 @@ import logging
 from abc import ABC
 from bisect import bisect_left
 from dataclasses import field, dataclass
-from time import strptime
 from typing import List, Type, Union
 
 from src.bot.commands._abstract import AbstractCommand
 from src.bot.entities import Message, User
 from src.gpt import get_gpt_response, GPTMessage
 from src.gpt.gpt import GPTOutputFunction, GPTStringEnum, GPTIntegerEnum
+from src.gpt.keys import OpenAIKeysManager
 from src.misc.class_status import ClassStatus
 from src.misc.weekdays import WEEKDAYS
-from src.schedule.class_ import Class
+from src.schedule.class_ import Class, ComparableClass
 from src.schedule.schedule import Schedule, format_classes
 
 triggers = None
@@ -22,6 +22,7 @@ class DaySchedule:
     date: datetime.date
     classes: List[Class]
     class_index: int
+    pre_text: str = field(default='')
 
 class ClassIndex(GPTIntegerEnum):
     possible_values = frozenset(range(0, 7))
@@ -39,16 +40,16 @@ class ScheduleFunction(GPTOutputFunction, ABC):
             default_status = ClassStatus.NEXT
         else:
             default_status = ClassStatus.PAST
-        return f'''Расписание на {result.date.strftime('%d.%m.%Y')}, {WEEKDAYS[result.date.weekday()]}
+        return f'''{result.pre_text}Расписание на {result.date.strftime('%d.%m.%Y')}, {WEEKDAYS[result.date.weekday()]}
 {format_classes(result.classes, result.class_index, default_status)}'''
 
 
 @dataclass
 class DayScheduleFunction(ScheduleFunction):
     name: str = field(default='print_classes')
-    classes: List[Class] = field(default=None)
+    s: Schedule = field(default=None)
 
-    async def __call__(self,date: str = datetime.datetime.now().strftime('%Y-%m-%d'), offset: int = 0,
+    async def __call__(self, date: str = None, offset: int = 0,
                        class_index: ClassIndex = 0) -> DaySchedule:
         """Prints classes from user's s for a date. 'date' or 'offset' should be specified
 
@@ -61,15 +62,17 @@ class DayScheduleFunction(ScheduleFunction):
         logging.info(f'Calling {self.name} with date={date}, offset={offset}, class_index={class_index}')
 
         delta = datetime.timedelta(days=offset)
-        sdate = strptime(date, '%Y-%m-%d')
-        date_ = datetime.datetime(sdate.tm_year, sdate.tm_mon, sdate.tm_mday)
+        date_ = datetime.datetime.strptime(date, '%Y-%m-%d') if date else datetime.datetime.now()
         date_ += delta
         date = datetime.date(date_.year, date_.month, date_.day)
 
-        classes = list(filter(lambda x: x.date == date, self.classes))
+        classes = list(filter(lambda x: x.date == date, self.s.classes))
 
         if not classes:
-            return DaySchedule(date, classes, 0)
+            date_russian = date.strftime('%d.%m.%Y')
+            date = self.s.get_closest(ComparableClass(date, 0)).date
+            classes = list(filter(lambda x: x.date == date, self.s.classes))
+            return DaySchedule(date, classes, 0, pre_text=f'{date_russian} нет пар 😼\n\n')
 
         first = classes[0].class_
         last = classes[-1].class_
@@ -141,14 +144,13 @@ class Command(AbstractCommand):
 
         now = datetime.datetime.now()
 
-        text = await get_gpt_response([
+        text = await get_gpt_response(user, [
             GPTMessage(role=GPTMessage.Role.SYSTEM, content=now.strftime(f'''University s application
 Now is %Y-%m-%d %H:%M MSK, %A\n''') + f'User is {s.role} {user.username}'),
             GPTMessage(role=GPTMessage.Role.USER, content=msg.text)
         ], [
-            DayScheduleFunction(classes=s.classes),
-            SearchAndPrintFunction(s=s,
-                                   DisciplinesEnum=DisciplinesEnum, ClassTypesEnum=ClassTypesEnum)
+            DayScheduleFunction(s=s),
+            SearchAndPrintFunction(s=s, DisciplinesEnum=DisciplinesEnum, ClassTypesEnum=ClassTypesEnum)
         ])
 
         await msg.api.send_text(msg.ctx, text)

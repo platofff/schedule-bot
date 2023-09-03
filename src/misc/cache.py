@@ -1,6 +1,5 @@
 from os import environ
 
-import redis.asyncio as redis
 from aiocache import Cache
 from aiocache.serializers import PickleSerializer
 

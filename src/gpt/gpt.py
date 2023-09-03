@@ -6,15 +6,19 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, asdict, field, is_dataclass, fields
 from enum import Enum
+from os import environ
 from typing import List, Type, Callable, Union, Any, FrozenSet
 
 import openai
+import tiktoken
 from docstring_parser import parse as parse_docstring, Docstring
 from frozendict import frozendict
 
+from src.bot.entities import User
+from src.gpt.keys import OpenAIKeysManager
+from src.gpt.rate_limit import get_remaining_tokens, decrease_remaining_tokens
 from src.misc.dataclasses import initialize_dataclasses
 from src.misc.typing import get_args_types
-
 
 @dataclass
 class GPTMessage:
@@ -160,27 +164,40 @@ class JSONEncoder(json.JSONEncoder):
             return obj.isoformat()
         return super(JSONEncoder, self).default(obj)
 
-async def get_gpt_response(_messages: List[GPTMessage], _functions: Union[List[GPTFunction], None] = None) -> str:
+
+tiktoken_encoding = tiktoken.encoding_for_model(environ['OPENAI_MODEL'])
+
+async def get_gpt_response(user: User, _messages: List[GPTMessage],
+                           _functions: Union[List[GPTFunction], None] = None) -> str:
     messages = [asdict(m) for m in _messages]
     functions = json.loads(json.dumps([f.to_dict() for f in _functions], cls=JSONEncoder)) # TODO
     f_call = 'auto'
 
     while True:
+        (remaining_tokens, limit), openai_key = await asyncio.gather(get_remaining_tokens(user),
+                                                                     OpenAIKeysManager.get_key())
+        if remaining_tokens > 0:
+            remaining_tokens -= len(tiktoken_encoding.encode(f'{" ".join(m["content"] for m in messages)} {functions}'))
+        if remaining_tokens <= 0:
+            return f'Исчерпан лимит запросов умного помощника! Он станет доступен через {limit} секунд'
         try:
             resp = await openai.ChatCompletion.acreate(
-                model='gpt-3.5-turbo',
+                model=environ['OPENAI_MODEL'],
                 messages=messages,
                 functions=functions,
                 function_call=f_call,
-                temperature=0.1756,
+                temperature=0.5,
+                api_key=openai_key,
+                max_tokens=remaining_tokens
             )
-        except openai.error.RateLimitError:
-            await asyncio.sleep(30)
+        except openai.error.OpenAIError:
+            await OpenAIKeysManager.delay_key(openai_key)
             continue
 
         logging.info(f'GPT response: {resp}')
 
         choice = resp['choices'][0]
+        await decrease_remaining_tokens(user, resp['usage']['total_tokens'])
         if choice['finish_reason'] == 'function_call' or 'function_call' in choice['message']:
             fc = choice['message']['function_call']
             messages.append(choice['message'])

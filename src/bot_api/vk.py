@@ -13,6 +13,7 @@ from src.misc.cache import cache_params
 
 class VkBotAPI(AbstractBotAPI):
     _text_handlers: List[Callable[[Message], Coroutine]] = []
+    _TYPING_DELAY = 3
 
     @staticmethod
     def _keyboard_adapter(k: Keyboard) -> str:
@@ -66,3 +67,10 @@ class VkBotAPI(AbstractBotAPI):
     @staticmethod
     def _user_id(ctx: VkMessage) -> str:
         return f'vk{ctx.peer_id}'
+
+    @staticmethod
+    def _internal_chat_id(ctx: VkMessage) -> int:
+        return ctx.peer_id
+
+    async def _set_typing_activity(self, peer_id: int):
+        await self._bot.api.messages.set_activity(peer_id=peer_id, type='typing')

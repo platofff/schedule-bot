@@ -35,7 +35,7 @@ class StudentRegistration(AbstractRegistration):
         try:
             user.year = int(msg.text)
         except (ValueError, ValidationError):
-            fi = Student.__fields__['year'].field_info
+            fi = Student.__fields__['year'].field_info # not working, TODO
             return await msg.api.send_text(msg.ctx, f'Номер курса должен быть от {fi.ge} до {fi.le}!')
         await user.save()
         await msg.api.send_text(msg.ctx, 'OK. Теперь напишите название своей группы (например "РПИа")',

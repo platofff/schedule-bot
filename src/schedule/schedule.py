@@ -15,7 +15,7 @@ from src.misc.cache import cache_params
 from src.misc.class_status import ClassStatus
 from src.misc.dates import utc_timestamp_ms, js_weekday
 from src.schedule.api import request
-from src.schedule.class_ import Class, ClassInterval, BaseClass, StudentClass, LecturerClass
+from src.schedule.class_ import Class, ClassInterval, BaseClass, StudentClass, LecturerClass, ComparableClass
 
 
 def format_classes(classes: List[Class], current: int = 0, default_status: Union[str, None] = None):
@@ -71,7 +71,7 @@ class Schedule:
         res['date'] = dt.date()
         return BaseClass(**res)
 
-    def get_closest(self, now: BaseClass) -> Class:
+    def get_closest(self, now: ComparableClass) -> Class:
         res = bisect_left(self.classes, now, 0)
         if res == len(self.classes):
             res = 0

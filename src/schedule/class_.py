@@ -11,10 +11,7 @@ class ClassInterval:
 
 
 @dataclass
-class BaseClass:
-    week: int
-    day: int
-    interval: ClassInterval
+class ComparableClass:
     date: datetime.date
     class_: int
 
@@ -24,6 +21,12 @@ class BaseClass:
         if self.date > other.date:
             return False
         return self.class_ < other.class_
+
+@dataclass
+class BaseClass(ComparableClass):
+    week: int
+    day: int
+    interval: ClassInterval
 
 @dataclass
 class Class(ABC, BaseClass):

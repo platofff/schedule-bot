@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from typing import Callable, Union, List, Coroutine
+from typing import Callable, Union, List, Coroutine, Awaitable
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Message as TgMessage, ReplyKeyboardMarkup, KeyboardButton
@@ -11,6 +11,7 @@ from src.bot_api.abstract import AbstractBotAPI, CommonMessages, Keyboard
 
 class TelegramBotAPI(AbstractBotAPI):
     _text_handlers: List[Callable[[Message], Coroutine]] = []
+    _TYPING_DELAY = 4
 
     @staticmethod
     def _keyboard_adapter(k: Keyboard) -> ReplyKeyboardMarkup:
@@ -50,3 +51,10 @@ class TelegramBotAPI(AbstractBotAPI):
     @staticmethod
     def _user_id(ctx: TgMessage) -> str:
         return f'tg{ctx.from_user}'
+
+    @staticmethod
+    def _internal_chat_id(ctx: TgMessage) -> int:
+        return ctx.chat.id
+
+    def _set_typing_activity(self, chat_id: int) -> Awaitable:
+        return self._bot.send_chat_action(chat_id=chat_id, action='typing')
