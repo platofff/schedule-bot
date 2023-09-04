@@ -19,9 +19,11 @@ class OpenAIKeysManager:
 
     @staticmethod
     def _check_key(key: str) -> Tuple[bool, str]:
-        model_list = openai.Model.list(api_key=key).data
-        models = [x['id'] for x in model_list]
-        return environ['OPENAI_MODEL'] in models, key
+        model_list: list = openai.Model.list(api_key=key).data
+        model = next((x for x in model_list if x['id'] == environ['OPENAI_MODEL']), None)
+        has_model = model is not None
+
+        return has_model, key
 
 
     @staticmethod

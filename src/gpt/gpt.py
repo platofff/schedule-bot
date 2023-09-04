@@ -13,6 +13,8 @@ import openai
 import tiktoken
 from docstring_parser import parse as parse_docstring, Docstring
 from frozendict import frozendict
+from openai.error import InvalidAPIType, RateLimitError, APIConnectionError, AuthenticationError, \
+    ServiceUnavailableError, TryAgain, Timeout
 
 from src.bot.entities import User
 from src.gpt.keys import OpenAIKeysManager
@@ -164,20 +166,23 @@ class JSONEncoder(json.JSONEncoder):
             return obj.isoformat()
         return super(JSONEncoder, self).default(obj)
 
-
+CONTEXT_LENGTH = int(environ['OPENAI_MODEL_CONTEXT_LENGTH'])
 tiktoken_encoding = tiktoken.encoding_for_model(environ['OPENAI_MODEL'])
 
 async def get_gpt_response(user: User, _messages: List[GPTMessage],
                            _functions: Union[List[GPTFunction], None] = None) -> str:
     messages = [asdict(m) for m in _messages]
-    functions = json.loads(json.dumps([f.to_dict() for f in _functions], cls=JSONEncoder)) # TODO
+    functions_text = json.dumps([f.to_dict() for f in _functions], cls=JSONEncoder, ensure_ascii=False)
+    functions = json.loads(functions_text)
     f_call = 'auto'
 
     while True:
         (remaining_tokens, limit), openai_key = await asyncio.gather(get_remaining_tokens(user),
                                                                      OpenAIKeysManager.get_key())
         if remaining_tokens > 0:
-            remaining_tokens -= len(tiktoken_encoding.encode(f'{" ".join(m["content"] for m in messages)} {functions}'))
+            remaining_tokens = min(remaining_tokens, CONTEXT_LENGTH)
+            remaining_tokens -= (sum(len(tiktoken_encoding.encode(m["content"])) for m in messages) +
+                                 len(tiktoken_encoding.encode(functions_text)))
         if remaining_tokens <= 0:
             return f'Исчерпан лимит запросов умного помощника! Он станет доступен через {limit} секунд'
         try:
@@ -190,7 +195,8 @@ async def get_gpt_response(user: User, _messages: List[GPTMessage],
                 api_key=openai_key,
                 max_tokens=remaining_tokens
             )
-        except openai.error.OpenAIError:
+        except (openai.error.PermissionError, InvalidAPIType, RateLimitError, APIConnectionError, AuthenticationError,
+                ServiceUnavailableError, Timeout, TryAgain):
             await OpenAIKeysManager.delay_key(openai_key)
             continue
 
