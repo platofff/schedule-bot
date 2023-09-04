@@ -3,17 +3,20 @@ services:
     build: .
     stop_signal: SIGINT
     environment:
-      LANG: en_US.UTF-8
-      LC_ALL: en_US.UTF-8
       VK_BOT_TOKEN: ${VK_BOT_TOKEN}
       TG_BOT_TOKEN: ${TG_BOT_TOKEN}
-      OPENAI_KEY: ${OPENAI_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL}
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
       MONGO_HOST: mongo
       MONGO_USER: root
       MONGO_PASSWORD: root
       MONGO_PORT: 27017
       REDIS_HOST: keydb
       REDIS_PORT: 6379
+      OPENAI_KEYS_FILE: /home/app/openai-keys.txt
+    volumes:
+      - ./openai-keys.txt:/home/app/openai-keys.txt:ro
 
   mongo:
     image: mongo:latest

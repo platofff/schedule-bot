@@ -7,9 +7,10 @@ RUN apt-get update &&\
  rm -rf /var/lib/{apt,dpkg,cache,log}/ &&\
  groupadd -g 2000 app &&\
  useradd -u 2000 -m app -g app &&\
- mkdir /home/app/db &&\
- chown -R app:app /home/app &&\
- pip install -U -r /home/app/requirements.txt --user
+ mkdir /home/app &&\
+ chown -R app:app /home/app
+USER app
+RUN pip install -U -r /home/app/requirements.txt --user
 COPY ./src /home/app/src
 ENV PYTHONPATH=/home/app
 ENV TZ="Europe/Moscow"
