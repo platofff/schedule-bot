@@ -30,7 +30,7 @@ class OpenAIKeysManager:
             await conn.delete(OpenAIKeysManager._REDIS_KEY)
 
             async with aiofiles.open(environ['OPENAI_KEYS_FILE'], 'r') as f:
-                keys = filter(bool, (await f.read()).split('\n'))
+                keys = list(filter(bool, (await f.read()).split('\n')))
 
             result = []
             loop = asyncio.get_event_loop()
