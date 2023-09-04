@@ -29,7 +29,7 @@ class OpenAIKeysManager:
         async with redis.Redis(connection_pool=redis_pool) as conn:
             await conn.delete(OpenAIKeysManager._REDIS_KEY)
 
-            with aiofiles.open(environ['OPENAI_KEYS_FILE'], 'r') as f:
+            async with aiofiles.open(environ['OPENAI_KEYS_FILE'], 'r') as f:
                 keys = (await f.read()).split('\n')
 
             result = []
