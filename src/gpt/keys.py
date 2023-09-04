@@ -5,6 +5,7 @@ from os import environ
 from time import time
 from typing import Tuple, Awaitable
 
+import aiofiles
 import redis.asyncio as redis
 import openai
 
@@ -28,8 +29,8 @@ class OpenAIKeysManager:
         async with redis.Redis(connection_pool=redis_pool) as conn:
             await conn.delete(OpenAIKeysManager._REDIS_KEY)
 
-            with open(environ['OPENAI_KEYS_FILE']) as f:
-                keys = f.read().split('\n')
+            with aiofiles.open(environ['OPENAI_KEYS_FILE'], 'r') as f:
+                keys = (await f.read()).split('\n')
 
             result = []
             loop = asyncio.get_event_loop()

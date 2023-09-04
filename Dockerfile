@@ -7,7 +7,6 @@ RUN apt-get update &&\
  rm -rf /var/lib/{apt,dpkg,cache,log}/ &&\
  groupadd -g 2000 app &&\
  useradd -u 2000 -m app -g app &&\
- mkdir /home/app &&\
  chown -R app:app /home/app
 USER app
 RUN pip install -U -r /home/app/requirements.txt --user
