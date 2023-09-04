@@ -46,7 +46,7 @@ class AbstractBotAPI(ABC):
             current = await conn.get(key)
             if typing:
                 if current is None:
-                    self._typing_tasks.update({ctx.peer_id: asyncio.get_event_loop()\
+                    self._typing_tasks.update({self._internal_chat_id(ctx): asyncio.get_event_loop()\
                                               .create_task(self._typing_task(self._internal_chat_id(ctx), key))})
                 await conn.incrby(key, 1)
             else:
